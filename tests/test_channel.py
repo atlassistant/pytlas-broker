@@ -17,10 +17,12 @@ class TestChannel:
   def test_it_should_call_callbacks_when_receiving_data(self):
     m = MagicMock()
     m.on_parse = MagicMock()
+    m.on_answer = MagicMock()
 
     c = Channel(m)
     c.receive(contextualize(PARSE, 'pod', 'john'), '{"text": "Hello you!"}')
 
+    m.on_answer.assert_not_called()
     m.on_parse.assert_called_once()
     msg = m.on_parse.call_args[0][0]
 
