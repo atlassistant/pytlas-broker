@@ -11,10 +11,11 @@ class Ask(Message):
   choices: list
   meta: dict
 
-  def __init__(self, uid, language, slot, text, choices, **meta):
+  def __init__(self, did, uid, language, slot, text, choices, **meta):
     """Instantiates a new message for the given client.
 
     Args:
+      did (str): Unique device identifier for which this message has been generated.
       uid (str): Unique identifier representing the subject.
       language (str): Agent language
       slot (str): Slot needed
@@ -24,7 +25,7 @@ class Ask(Message):
     
     """
     
-    super().__init__(ASK, uid)
+    super().__init__(ASK, did, uid)
 
     self.language = language
     self.slot = slot

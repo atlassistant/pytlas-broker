@@ -10,10 +10,11 @@ class Answer(Message):
   cards: list
   meta: dict
 
-  def __init__(self, uid, language, text, cards, **meta):
+  def __init__(self, did, uid, language, text, cards, **meta):
     """Instantiates a new message for the given client.
 
     Args:
+      did (str): Unique device identifier for which this message has been generated.
       uid (str): Unique identifier representing the subject.
       language (str): Agent language
       text (str): Answer text
@@ -22,7 +23,7 @@ class Answer(Message):
     
     """
     
-    super().__init__(ANSWER, uid)
+    super().__init__(ANSWER, did, uid)
 
     self.language = language
     self.text = text
