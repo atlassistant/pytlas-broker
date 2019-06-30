@@ -14,17 +14,19 @@ class TestChannel:
 
     c.write.assert_called_once_with(contextualize(ANSWER, 'pod', 'john'), '{"language": "en-US", "text": "Hello!", "cards": [], "meta": {}}')
 
-  def test_it_should_call_callbacks_when_receiving_data(self):
-    m = MagicMock()
-    m.on_parse = MagicMock()
-    m.on_answer = MagicMock()
+  def test_it_should_call_subcribe_callback_when_receiving_data(self):
+    on_parse = MagicMock()
+    on_answer = MagicMock()
 
-    c = Channel(m)
+    c = Channel()
+    c.subscribe(PARSE, on_parse)
+    c.subscribe(ANSWER, on_answer)
+
     c.receive(contextualize(PARSE, 'pod', 'john'), '{"text": "Hello you!"}')
 
-    m.on_answer.assert_not_called()
-    m.on_parse.assert_called_once()
-    msg = m.on_parse.call_args[0][0]
+    on_answer.assert_not_called()
+    on_parse.assert_called_once()
+    msg = on_parse.call_args[0][0]
 
     expect(msg).to.be.a(Parse)
     expect(msg.text).to.equal('Hello you!')
