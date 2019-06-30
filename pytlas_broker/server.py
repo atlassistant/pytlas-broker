@@ -3,6 +3,7 @@ from pytlas_broker.messages import Pong, Ask, Answer, Context, Done, Thinking
 from pytlas_broker.topics import PARSE, PING
 from pytlas.interpreters.snips import SnipsInterpreter
 from pytlas import settings, Agent
+import os, logging
 
 class Model:
   """Represents a pytlas model used to communicate with the provided server
@@ -50,6 +51,7 @@ class Server:
   """
 
   _channel: Channel
+  _logger: logging.Logger
   _agents: dict = {}
 
   def __init__(self, channel):
@@ -59,6 +61,7 @@ class Server:
       channel (Channel): Channel used to communicate with clients.
     
     """
+    self._logger = logging.getLogger(self.__class__.__name__.lower())
     self._channel = channel
     self._channel.subscribe(PING, self.on_ping)
     self._channel.subscribe(PARSE, self.on_parse)
@@ -75,7 +78,10 @@ class Server:
       Agent: The instantiated agent
 
     """
-    lang = settings.get('language', 'en', section=uid)
+    self._logger.info(f'Creating agent for uid {uid}')
+
+    lang = settings.get('lang', 'en', section=uid)
+    cache_dir = os.path.join(settings.get(settings.SETTING_CACHE, 'cache'), uid)
     prefix = uid + '.'
     meta = {}
 
@@ -87,7 +93,7 @@ class Server:
         settings.to_env_key(section.replace(prefix, ''), k): v 
         for k, v in settings.config.items(section) })
 
-    interpreter = SnipsInterpreter(lang)
+    interpreter = SnipsInterpreter(lang, cache_directory=cache_dir)
     return Agent(interpreter, self.create_model(lang, uid), **meta)
 
   def create_model(self, lang, uid):
