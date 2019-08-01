@@ -5,12 +5,8 @@ class Answer(Message):
   """Represents an answer message.
   """
 
-  language: str
-  text: str
-  cards: list
-  meta: dict
-
-  def __init__(self, did, uid, language, text, cards, **meta):
+  def __init__(self, did: str, uid: str, language: str, text: str, 
+    cards: list, **meta) -> None:
     """Instantiates a new message for the given client.
 
     Args:

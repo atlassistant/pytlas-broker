@@ -1,8 +1,9 @@
 from pytlas_broker.channel import Channel
-from pytlas_broker.messages import Pong, Ask, Answer, Context, Done, Thinking
+from pytlas_broker.messages import Message, Pong, Ask, Answer, Context, Done, Thinking
 from pytlas_broker.topics import PARSE, PING
 from pytlas.interpreters.snips import SnipsInterpreter
 from pytlas import settings, Agent
+from typing import List
 import os, logging
 
 class Model:
@@ -10,38 +11,38 @@ class Model:
   using a Channel.
   """
 
-  _uid: str
-  _did: str
-  _lang: str
-  _channel: Channel
-
-  def __init__(self, channel, lang, did, uid):
-    self._channel = channel
+  def __init__(self, lang: str, uid: str) -> None:
+    self._channel: Channel = None
+    self._did: str = None
     self._uid = uid
-    self._did = did
     self._lang = lang
 
-  def update_device(self, id):
+  def update_device_channel(self, channel: Channel, id: str) -> None:
+    self._channel = channel
     self._did = id
 
-  def on_thinking(self):
+  def on_thinking(self) -> None:
     self._channel.send(Thinking(self._did, self._uid))
 
-  def on_done(self, require_input):
+  def on_done(self, require_input: bool) -> None:
     self._channel.send(Done(self._did, self._uid, require_input))
 
-  def on_ask(self, slot, text, choices, **meta):
+  def on_ask(self, slot: str, text: str, choices: list, **meta) -> None:
     self._channel.send(
       Ask(self._did, self._uid, self._lang, slot, text, choices, **meta)
     )
 
-  def on_answer(self, text, cards, **meta):
+  def on_answer(self, text: str, cards: list, **meta) -> None:
     self._channel.send(
       Answer(self._did, self._uid, self._lang, text, cards, **meta)
     )
 
-  def on_context(self, context):
-    self._channel.send(Context(self._did, self._uid, context))
+  def on_context(self, context: str) -> None:
+    if self._channel:
+      self._channel.send(Context(self._did, self._uid, context))
+
+def wrap_channel_handler(channel, func):
+  return lambda msg: func(channel, msg)
 
 class Server:
   """Base class which represents a broker server that respond to some messages.
@@ -50,23 +51,24 @@ class Server:
   pytlas agents on incoming requests by overriding the method `create_agent`.
   """
 
-  _channel: Channel
-  _logger: logging.Logger
-  _agents: dict = {}
-
-  def __init__(self, channel):
+  def __init__(self):
     """Instantiate a pytlas broker server.
-
-    Args:
-      channel (Channel): Channel used to communicate with clients.
-    
     """
     self._logger = logging.getLogger(self.__class__.__name__.lower())
-    self._channel = channel
-    self._channel.subscribe(PING, self.on_ping)
-    self._channel.subscribe(PARSE, self.on_parse)
+    self._agents = {}
 
-  def create_agent(self, uid):
+  def subscribe_on(self, *channels: List[Channel]) -> None:
+    """Ask the server to subscribe to the given Channel.
+
+    Args:
+      channel (Channel): Channel to subscribe on
+    
+    """
+    for channel in channels:
+      channel.subscribe(PING, wrap_channel_handler(channel, self.on_ping))
+      channel.subscribe(PARSE, wrap_channel_handler(channel, self.on_parse))
+
+  def create_agent(self, uid: str) -> Agent:
     """Creates an agent for the given unique identifier. It will look in the
     settings for a section with this uid and extract all user related stuff
     to agent metadata.
@@ -94,41 +96,30 @@ class Server:
         for k, v in settings.config.items(section) })
 
     interpreter = SnipsInterpreter(lang, cache_directory=cache_dir)
-    return Agent(interpreter, self.create_model(lang, uid), **meta)
+    return Agent(interpreter, Model(lang, uid), **meta)
 
-  def create_model(self, lang, uid):
-    """Creates a pytlas model with the server channel to communicate with
-    clients.
-
-    Args:
-      lang (str): Language of the agent
-      uid (str): Unique identifier
-    
-    Returns:
-      Model: A model object
-
-    """
-    return Model(self._channel, lang, '', uid)
-
-  def agent_from_message(self, msg):
+  def agent_from_channel_message(self, channel: Channel, msg: Message) -> Agent:
     """Retrieve an agent for the given message. If an agent does not exists, it
     will be created using the `create_agent` method.
 
+    It also update the current agent channel to match the given channel.
+
     Args:
+      channel (Channel): Channel which wants to communicate with the agent
       msg (Message): Message received
     
     """
     if msg.uid not in self._agents:
       self._agents[msg.uid] = self.create_agent(msg.uid)
-    
+
     agt = self._agents[msg.uid]
-    agt.model.update_device(msg.did)
+    agt.model.update_device_channel(channel, msg.did)
     return agt
 
-  def on_parse(self, msg):
-    agt = self.agent_from_message(msg)
+  def on_parse(self, channel: Channel, msg: Message):
+    agt = self.agent_from_channel_message(channel, msg)
     agt.parse(msg.text, **msg.meta)
 
-  def on_ping(self, msg):
-    agt = self.agent_from_message(msg)
-    self._channel.send(Pong(msg.did, msg.uid, agt._interpreter.lang))
+  def on_ping(self, channel: Channel, msg: Message):
+    agt = self.agent_from_channel_message(channel, msg)
+    channel.send(Pong(msg.did, msg.uid, agt._interpreter.lang))

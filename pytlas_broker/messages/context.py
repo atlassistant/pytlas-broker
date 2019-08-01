@@ -5,9 +5,7 @@ class Context(Message):
   """Represents a context message.
   """
 
-  context: str
-
-  def __init__(self, did, uid, context):
+  def __init__(self, did: str, uid: str, context: str) -> None:
     """Instantiates a new message for the given client.
 
     Args:

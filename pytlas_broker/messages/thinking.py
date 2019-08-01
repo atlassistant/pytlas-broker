@@ -5,7 +5,7 @@ class Thinking(Message):
   """Represents a thinking message.
   """
 
-  def __init__(self, did, uid):
+  def __init__(self, did: str, uid: str) -> None:
     """Instantiates a new message for the given client.
 
     Args:

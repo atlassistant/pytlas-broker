@@ -5,9 +5,7 @@ class Done(Message):
   """Represents a done message.
   """
 
-  require_input: bool
-
-  def __init__(self, did, uid, require_input):
+  def __init__(self, did: str, uid: str, require_input: bool) -> None:
     """Instantiates a new message for the given client.
 
     Args:

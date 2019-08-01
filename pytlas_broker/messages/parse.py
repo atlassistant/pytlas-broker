@@ -5,10 +5,7 @@ class Parse(Message):
   """Represents a parse message.
   """
 
-  text: str
-  meta: dict
-
-  def __init__(self, did, uid, text, **meta):
+  def __init__(self, did: str, uid: str, text: str, **meta) -> None:
     """Instantiates a new message for the given client.
 
     Args:

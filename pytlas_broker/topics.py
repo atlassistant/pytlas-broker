@@ -1,4 +1,4 @@
-def contextualize(topic, did, uid=None):
+def contextualize(topic: str, did: str, uid: str=None) -> str:
   """Contextualize a topic for a specific subject.
 
   Args:
@@ -24,7 +24,7 @@ def contextualize(topic, did, uid=None):
 
   return t
 
-def extract(topic):
+def extract(topic: str) -> tuple:
   """Extract informations from a topic. This is the inverse function of
   contextualize.
 

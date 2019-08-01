@@ -6,19 +6,18 @@ class Channel:
   """Represents a transport layer for messages.
   """
 
-  _handlers: dict = {}
-  _logger = logging.Logger
-
-  def __init__(self):
+  def __init__(self) -> None:
     self._logger = logging.getLogger(self.__class__.__name__.lower())
+    self._handlers = {}
 
-  def __enter__(self):
+  def __enter__(self) -> None:
+    self.open()
     return self
 
-  def __exit__(self, type, value, traceback):
-    return False
+  def __exit__(self, type, value, traceback) -> None:
+    return self.close()
 
-  def subscribe(self, topic, handler):
+  def subscribe(self, topic: str, handler: callable) -> None:
     """Subscribes to the given topic. Given handler will receive all events for
     the extracted topic name so wildcards or path doesn't matter here.
 
@@ -30,7 +29,7 @@ class Channel:
     name, *_ = extract(topic) # Let's extract the topic name
     self._handlers[name] = handler
 
-  def send(self, message):
+  def send(self, message: Message) -> None:
     """Sends a message on this channel.
 
     Args:
@@ -39,7 +38,7 @@ class Channel:
     """
     self.write(message.topic, json.dumps(message.data()))
 
-  def receive(self, topic, data):
+  def receive(self, topic: str, data: str) -> None:
     """Receive a raw message on a given topic. This method will try to
     convert the raw data in a more meaningful representation and call
     an appropriate handler on the channel client if one exists.
@@ -59,7 +58,7 @@ class Channel:
     else:
       self._logger.info(f'No handlers for topic {name}')
   
-  def write(self, topic, payload):
+  def write(self, topic: str, payload: str) -> None:
     """Write the given payload to the given topic. Should be overriden by
     implementations.
 
@@ -67,5 +66,15 @@ class Channel:
       topic (str): Topic to write to
       payload (str): Serialized data to write
 
+    """
+    pass
+
+  def open(self) -> None:
+    """Open the channel.
+    """
+    pass
+
+  def close(self) -> None:
+    """Close the current channel.
     """
     pass

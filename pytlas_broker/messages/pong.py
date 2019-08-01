@@ -5,9 +5,7 @@ class Pong(Message):
   """Represents a pong message.
   """
 
-  language: str
-
-  def __init__(self, did, uid, language):
+  def __init__(self, did: str, uid: str, language: str) -> None:
     """Instantiates a new message for the given client.
 
     Args:

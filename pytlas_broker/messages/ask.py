@@ -5,13 +5,8 @@ class Ask(Message):
   """Represents an answer message.
   """
 
-  language: str
-  slot: str
-  text: str
-  choices: list
-  meta: dict
-
-  def __init__(self, did, uid, language, slot, text, choices, **meta):
+  def __init__(self, did: str, uid: str, language: str, slot: str, 
+    text: str, choices: list, **meta) -> None:
     """Instantiates a new message for the given client.
 
     Args:

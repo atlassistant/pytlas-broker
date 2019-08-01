@@ -4,11 +4,7 @@ class Message:
   """Base class for a message which should be processed by a channel.
   """
 
-  topic: str
-  did: str
-  uid: str
-
-  def __init__(self, topic, did, uid):
+  def __init__(self, topic: str, did: str, uid: str) -> None:
     """Intantiates a new message.
 
     Args:
@@ -39,7 +35,7 @@ class Message:
     return d
 
   @staticmethod
-  def from_data(name, did, uid, **payload):
+  def from_data(name: str, did: str, uid: str, **payload) -> 'Message':
     """Try to instantiate a strongly typed message from the given name and payload.
 
     Args:
