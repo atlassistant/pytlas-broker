@@ -1,47 +1,14 @@
+from pytlas import Agent
 from pytlas_broker.channel import Channel
-from pytlas_broker.messages import Message, Pong, Ask, Answer, Context, Done, Thinking
+from pytlas_broker.messages import Message, Pong
 from pytlas_broker.topics import PARSE, PING
-from pytlas.interpreters.snips import SnipsInterpreter
-from pytlas import settings, Agent
+from pytlas_broker.agents_factory import from_settings
 from typing import List
 import os, logging
 
-class Model:
-  """Represents a pytlas model used to communicate with the provided server
-  using a Channel.
+def wrap_channel_handler(channel: Channel, func: callable) -> callable:
+  """Wrap a func inside a lambda and call it with the given channel.
   """
-
-  def __init__(self, lang: str, uid: str) -> None:
-    self._channel: Channel = None
-    self._did: str = None
-    self._uid = uid
-    self._lang = lang
-
-  def update_device_channel(self, channel: Channel, id: str) -> None:
-    self._channel = channel
-    self._did = id
-
-  def on_thinking(self) -> None:
-    self._channel.send(Thinking(self._did, self._uid))
-
-  def on_done(self, require_input: bool) -> None:
-    self._channel.send(Done(self._did, self._uid, require_input))
-
-  def on_ask(self, slot: str, text: str, choices: list, **meta) -> None:
-    self._channel.send(
-      Ask(self._did, self._uid, self._lang, slot, text, choices, **meta)
-    )
-
-  def on_answer(self, text: str, cards: list, **meta) -> None:
-    self._channel.send(
-      Answer(self._did, self._uid, self._lang, text, cards, **meta)
-    )
-
-  def on_context(self, context: str) -> None:
-    if self._channel:
-      self._channel.send(Context(self._did, self._uid, context))
-
-def wrap_channel_handler(channel, func):
   return lambda msg: func(channel, msg)
 
 class Server:
@@ -51,11 +18,16 @@ class Server:
   pytlas agents on incoming requests by overriding the method `create_agent`.
   """
 
-  def __init__(self):
+  def __init__(self, agents_factory: callable=None) -> None:
     """Instantiate a pytlas broker server.
+
+    Args:
+      agents_factory (callable): Method called when instantiating an agent. If no one is provided, the default will fallback to `agents_factory.from_settings`. this method will receive the user identifier as an argument and should use a `ChannelModel`.
+
     """
     self._logger = logging.getLogger(self.__class__.__name__.lower())
     self._agents = {}
+    self._factory = agents_factory or from_settings
 
   def subscribe_on(self, *channels: List[Channel]) -> None:
     """Ask the server to subscribe to the given Channel.
@@ -67,36 +39,6 @@ class Server:
     for channel in channels:
       channel.subscribe(PING, wrap_channel_handler(channel, self.on_ping))
       channel.subscribe(PARSE, wrap_channel_handler(channel, self.on_parse))
-
-  def create_agent(self, uid: str) -> Agent:
-    """Creates an agent for the given unique identifier. It will look in the
-    settings for a section with this uid and extract all user related stuff
-    to agent metadata.
-
-    Args:
-      uid (str): Unique identifier
-
-    Returns:
-      Agent: The instantiated agent
-
-    """
-    self._logger.info(f'Creating agent for uid {uid}')
-
-    lang = settings.get('lang', 'en', section=uid)
-    cache_dir = os.path.join(settings.get(settings.SETTING_CACHE, 'cache'), uid)
-    prefix = uid + '.'
-    meta = {}
-
-    # Let's transform user sections to agent metadata
-    user_sections = [s for s in settings.config.sections() if s.startswith(prefix)]
-
-    for section in user_sections:
-      meta.update({ 
-        settings.to_env_key(section.replace(prefix, ''), k): v 
-        for k, v in settings.config.items(section) })
-
-    interpreter = SnipsInterpreter(lang, cache_directory=cache_dir)
-    return Agent(interpreter, Model(lang, uid), **meta)
 
   def agent_from_channel_message(self, channel: Channel, msg: Message) -> Agent:
     """Retrieve an agent for the given message. If an agent does not exists, it
@@ -110,7 +52,8 @@ class Server:
     
     """
     if msg.uid not in self._agents:
-      self._agents[msg.uid] = self.create_agent(msg.uid)
+      self._logger.info(f'Agent not found, creating one for user "{msg.uid}"')
+      self._agents[msg.uid] = self._factory(msg.uid)
 
     agt = self._agents[msg.uid]
     agt.model.update_device_channel(channel, msg.did)

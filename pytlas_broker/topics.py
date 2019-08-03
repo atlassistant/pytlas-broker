@@ -16,7 +16,6 @@ def contextualize(topic: str, did: str, uid: str=None) -> str:
     'atlas/pod/john/ping'
 
   """
-  
   t = topic.replace('+', did, 1)
 
   if uid:

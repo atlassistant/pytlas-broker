@@ -11,16 +11,6 @@ class TestServer:
   def setUp(self):
     settings.reset()
 
-  def test_it_should_create_an_agent_with_appropriate_meta(self):
-    settings.load(os.path.join(os.path.dirname(__file__), 'test.conf'))
-
-    s = Server()
-    agt = s.create_agent('john')
-
-    expect(agt._interpreter.lang).to.equal('fr')
-    expect(agt.meta).to.have.key('OPENWEATHER_APIKEY')
-    expect(agt.meta['OPENWEATHER_APIKEY']).to.equal('john_api_key')
-
   def test_it_should_create_an_agent_only_if_it_doesnt_exist_yet(self):
     chan = Channel()
     s = Server()
