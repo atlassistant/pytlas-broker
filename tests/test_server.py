@@ -2,14 +2,11 @@ from sure import expect
 from unittest.mock import MagicMock
 from pytlas_broker.channel import Channel
 from pytlas_broker.server import Server
-from pytlas_broker.topics import contextualize, PING, PONG
-from pytlas import settings
+from pytlas_broker.messages import Parse
+from pytlas_broker.topics import contextualize, PING, PONG, PARSE
 import os
 
 class TestServer:
-
-  def setUp(self):
-    settings.reset()
 
   def test_it_should_create_an_agent_only_if_it_doesnt_exist_yet(self):
     chan = Channel()
@@ -45,3 +42,17 @@ class TestServer:
     chan2.receive(contextualize(PING, 'pod', 'julie'), '{}')
     chan1.write.assert_called_once()
     chan2.write.assert_called_once_with(contextualize(PONG, 'pod', 'julie'), '{"language": "en"}')
+
+  def test_it_should_answer_to_a_parse_request(self):
+    chan = Channel()
+    s = Server()
+    s.on_parse = MagicMock()
+    s.subscribe_on(chan)
+
+    chan.receive(contextualize(PARSE, 'pod', 'john'), '{"text": "hello there", "meta": {"a_meta": "a_value"} }')
+
+    s.on_parse.assert_called_once()
+    c, m = s.on_parse.call_args[0]
+
+    expect(c).to.equal(chan)
+    expect(m.data()).to.equal(Parse('pod', 'john', 'hello there', a_meta='a_value').data())
