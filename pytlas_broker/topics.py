@@ -1,50 +1,52 @@
-def contextualize(topic: str, did: str, uid: str=None) -> str:
-  """Contextualize a topic for a specific subject.
+def contextualize(topic: str, did: str, uid: str = None) -> str:
+    """Contextualize a topic for a specific subject.
 
-  Args:
-    topic (str): Topic to contextualize
-    did (str): Device identifier
-    uid (str): Unique subject identifier
-  
-  Returns:
-    str: The contextualized topic
-  
-  Examples:
-    >>> contextualize('atlas/+/+/ping', 'pod')
-    'atlas/pod/+/ping'
-    >>> contextualize('atlas/+/+/ping', 'pod', 'john')
-    'atlas/pod/john/ping'
+    Args:
+      topic (str): Topic to contextualize
+      did (str): Device identifier
+      uid (str): Unique subject identifier
 
-  """
-  t = topic.replace('+', did, 1)
+    Returns:
+      str: The contextualized topic
 
-  if uid:
-    t= t.replace('+', uid, 1)
+    Examples:
+      >>> contextualize('atlas/+/+/ping', 'pod')
+      'atlas/pod/+/ping'
+      >>> contextualize('atlas/+/+/ping', 'pod', 'john')
+      'atlas/pod/john/ping'
 
-  return t
+    """
+    t = topic.replace('+', did, 1)
+
+    if uid:
+        t = t.replace('+', uid, 1)
+
+    return t
+
 
 def extract(topic: str) -> tuple:
-  """Extract informations from a topic. This is the inverse function of
-  contextualize.
+    """Extract informations from a topic. This is the inverse function of
+    contextualize.
 
-  Args:
-    topic (str): Topic source
+    Args:
+      topic (str): Topic source
 
-  Returns:
-    tuple: Message name, Device and unique identifiers extracted.
+    Returns:
+      tuple: Message name, Device and unique identifiers extracted.
 
-  Example:
-    >>> extract('atlas/pod/john/ping')
-    ('ping', 'pod', 'john')
+    Example:
+      >>> extract('atlas/pod/john/ping')
+      ('ping', 'pod', 'john')
 
-  """
-  _, did, uid, *_, name = topic.split('/')
+    """
+    _, did, uid, *_, name = topic.split('/')
 
-  return (name, did, uid)
+    return (name, did, uid)
 
 # ----------------------------------------------------------
 # CLIENT -> SERVER topics
 # ----------------------------------------------------------
+
 
 # Ping the broker server which should answer with a pong when
 # the agent is ready.

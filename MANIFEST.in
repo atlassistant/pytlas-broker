@@ -1,0 +1,2 @@
+include README.rst
+include pytlas_broker/__about__.py
