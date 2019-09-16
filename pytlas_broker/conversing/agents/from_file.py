@@ -5,8 +5,16 @@ from configparser import ConfigParser
 from typing import Dict, Tuple
 from pytlas import Agent
 from pytlas.understanding.snips import SnipsInterpreter
-from pytlas.settings import SettingsStore, to_env_key
+from pytlas.settings import SettingsStore, to_env_key, DEFAULT_SECTION
 from pytlas_broker.conversing.agents.factory import Factory
+
+
+DEFAULT_LANGUAGE = 'en'
+LANGUAGE_KEY = 'language'
+DEFAULT_DIR = 'default'
+CACHE_DIR = 'cache'
+CONF_FILENAME = 'pytlas.ini'
+
 
 def get_config_directories_path(base_path: str, uid: str) -> Tuple[str, str]:
     """Retrieve directories path used by the FromFileFactory.
@@ -20,9 +28,10 @@ def get_config_directories_path(base_path: str, uid: str) -> Tuple[str, str]:
 
     """
     return (
-        os.path.abspath(os.path.join(base_path, uid, 'cache')),
-        os.path.abspath(os.path.join(base_path, uid, 'pytlas.ini'))
+        os.path.abspath(os.path.join(base_path, uid, CACHE_DIR)),
+        os.path.abspath(os.path.join(base_path, uid, CONF_FILENAME))
     )
+
 
 def env_from_configparser(config: ConfigParser) -> Dict[str, str]:
     """Convert a ConfigParser instance to a dictionary which will be used by an
@@ -39,6 +48,7 @@ def env_from_configparser(config: ConfigParser) -> Dict[str, str]:
     for section in config.sections():
         result.update({to_env_key(section, k): v for k, v in config.items(section)})
     return result
+
 
 class FromFileFactory(Factory): # pylint: disable=too-few-public-methods
     """Defines a factory which will create an agent by reading user specific
@@ -64,7 +74,7 @@ class FromFileFactory(Factory): # pylint: disable=too-few-public-methods
         self._directory = directory
         # Let's read the default configuration right now
         self._default_cache_dir, default_conf_path = \
-            get_config_directories_path(self._directory, 'default')
+            get_config_directories_path(self._directory, DEFAULT_DIR)
         settings = SettingsStore()
         settings.load_from_file(default_conf_path)
         self._default_settings = env_from_configparser(settings.config)
@@ -78,12 +88,14 @@ class FromFileFactory(Factory): # pylint: disable=too-few-public-methods
             store = SettingsStore()
             store.load_from_file(conf_path)
             settings.update(env_from_configparser(store.config))
+            self._logger.info('Updated default settings with the ones in "%s"', conf_path)
         else:
             cache_dir = self._default_cache_dir
             self._logger.warning('Could not find a pytlas.ini file in "%s", using the default one',
                                  conf_path)
 
-        interpreter = SnipsInterpreter(settings.get(to_env_key('pytlas', 'language'), 'en'),
+        interpreter = SnipsInterpreter(settings.get(to_env_key(DEFAULT_SECTION, LANGUAGE_KEY),
+                                                    DEFAULT_LANGUAGE),
                                        cache_directory=cache_dir)
         interpreter.fit_from_skill_data()
         return Agent(interpreter, **settings)

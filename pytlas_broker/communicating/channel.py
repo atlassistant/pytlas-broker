@@ -50,7 +50,7 @@ class Channel:
                 self._logger.warning('"%s" does not exists in the channel handlers', model)
 
     def receive(self, message: Message) -> None:
-        """Sends the given message to each attach models. a method matching
+        """Sends the given message to each attached models. a method matching
         `on_<message_class_name>` will be triggered and will have the current
         channel and the parsed message as arguments.
 
@@ -66,8 +66,8 @@ class Channel:
                 self._logger.debug('Calling "%s.%s"', handler, attr_name)
                 attr(self, message)
             else:
-                self._logger.warning('Could not find "%s" on handler "%s", skipping',
-                                     attr_name, handler)
+                self._logger.debug('Could not find "%s" on handler "%s", skipping',
+                                   attr_name, handler)
 
     def send(self, message: Message) -> None:
         """Sends a message on this channel, implementation specific.
