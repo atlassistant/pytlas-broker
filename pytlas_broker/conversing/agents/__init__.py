@@ -2,3 +2,4 @@
 """
 
 from pytlas_broker.conversing.agents.factory import Factory
+from pytlas_broker.conversing.agents.from_file import FromFileFactory
