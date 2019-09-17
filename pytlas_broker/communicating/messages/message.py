@@ -1,5 +1,7 @@
 # pylint: disable=C0111
 
+from typing import List
+
 
 class Message:
     """Base class for a message which should be transported by a channel.
@@ -32,6 +34,16 @@ class Message:
         del data['user_identifier']
 
         return data
+
+    @staticmethod
+    def available() -> List[str]:
+        """Retrieve the list of available message names.
+
+        Returns:
+            list of str: List of message names in lowercase
+
+        """
+        return [c.__name__.lower() for c in Message.__subclasses__()]
 
     @staticmethod
     def from_data(name: str, device_identifier: str, user_identifier: str, **payload) -> 'Message':

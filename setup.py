@@ -29,6 +29,7 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     install_requires=[
+        'click~=7.0',
         'pytlas[snips]~=5.0',
         'paho-mqtt~=1.4.0',
     ],
@@ -41,8 +42,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'pytlas-broker-server = pytlas_broker.cli.server:main',
-            'pytlas-broker-client = pytlas_broker.cli.client:main',
+            'pytlas-broker = pytlas_broker.cli:main',
         ]
     },
 )

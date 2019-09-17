@@ -57,6 +57,7 @@ class MQTTChannel(Channel):
         self._port = port
         self._client = mqtt.Client()
         self._client.on_connect = self._on_connected
+        self._client.on_disconnect = self._on_disconnected
         self._client.on_message = self._on_message
 
     def open(self) -> None:
@@ -70,13 +71,19 @@ class MQTTChannel(Channel):
     def send(self, message: Message) -> None:
         topic = message.__class__.__name__.lower()
         payload = json.dumps(message.data())
-        self._client.publish(contextualize(message.device_identifier,
-                                           message.user_identifier,
-                                           topic),
+        self._client.publish(contextualize(topic,
+                                           message.device_identifier,
+                                           message.user_identifier),
                              payload)
 
     def _on_connected(self, client, userdata, flags, rc) -> None: # pylint: disable=invalid-name, unused-argument
-        self._logger.info('Successfully connected to the broker at "%s"!', self._host)
+        self._logger.info('Successfully connected to the broker at "%s"', self._host)
+
+        for sub in (contextualize(m, '+', '+') for m in Message.available()):
+            self._client.subscribe(sub)
+
+    def _on_disconnected(self, client, userdata, rc): # pylint: disable=invalid-name, unused-argument
+        self._logger.warning('Disconnected from the broker')
 
     def _on_message(self, client, userdata, msg) -> None: # pylint: disable=unused-argument
         topic, device, user = extract(msg.topic)

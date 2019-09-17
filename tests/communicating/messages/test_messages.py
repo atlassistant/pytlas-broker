@@ -3,6 +3,15 @@ from pytlas_broker.communicating.messages import Message, Ping, Pong, Parse, \
     Answer, Ask, Context, Done, Thinking
 
 
+class TestMessage:
+
+    def test_it_should_expose_the_list_of_available_messages(self):
+        names = Message.available()
+        expect(names).to.equal([
+            'ping', 'pong', 'parse', 'answer', 'ask', 'context', 'done', 'thinking',
+        ])
+
+
 class TestPingMessage:
 
     def test_it_should_contain_no_payload(self):
