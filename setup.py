@@ -30,7 +30,7 @@ setup(
     ],
     install_requires=[
         'click~=7.0',
-        'pytlas[snips]~=5.0',
+        'pytlas[snips]~=5.1',
         'paho-mqtt~=1.4.0',
     ],
     extras_require={

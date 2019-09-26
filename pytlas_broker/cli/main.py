@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 import os
 import click
@@ -23,10 +23,12 @@ def main(verbose, debug):
 
 @main.command()
 @click.argument('data_dir', type=click.Path(), required=True)
-def serve(data_dir):
+@click.option('--default', type=str, default='default',
+              help='Default folder used for unknown user as a fallback (default to "default")')
+def serve(data_dir, default):
     """Starts the server.
     """
-    agents_factory = FromFile(data_dir)
+    agents_factory = FromFile(data_dir, default)
 
     # Let's load the configuration and load the skills
     CONFIG.load_from_file(agents_factory._default_conf_path) # pylint: disable=protected-access
@@ -37,7 +39,7 @@ def serve(data_dir):
 
     with MQTTChannel() as mqtt:
         mqtt.attach(server)
-        input()
+        input('Press any key, anytime to stop the broker')
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ from sure import expect
 from pytlas.settings import CONFIG
 from pytlas_broker.conversing.agents import FromFile
 from pytlas_broker.conversing.agents.from_file import get_config_directories_path, \
-    env_from_configparser, CACHE_DIR, CONF_FILENAME
+    CACHE_DIR, CONF_FILENAME
 
 class TestGetConfigDirectoriesPath:
 
@@ -12,22 +12,6 @@ class TestGetConfigDirectoriesPath:
         p = get_config_directories_path('__settings', 'john')
         expect(p[0]).to.equal(os.path.abspath(os.path.join('__settings', 'john', CACHE_DIR)))
         expect(p[1]).to.equal(os.path.abspath(os.path.join('__settings', 'john', CONF_FILENAME)))
-
-class TestEnvFromConfigParser:
-
-    def test_it_should_convert_a_config_parser_object_to_dict(self):
-        conf = ConfigParser()
-        conf['pytlas'] = {
-            'language': 'en',
-        }
-        conf['weather'] = {
-            'apikey': 'akey!',
-        }
-
-        expect(env_from_configparser(conf)).to.equal({
-            'PYTLAS_LANGUAGE': 'en',
-            'WEATHER_APIKEY': 'akey!',
-        })
 
 class TestFromFile:
 

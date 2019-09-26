@@ -1,8 +1,7 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 import os
-from configparser import ConfigParser
-from typing import Dict, Tuple
+from typing import Tuple
 from pytlas import Agent
 from pytlas.understanding.snips import SnipsInterpreter
 from pytlas.settings import SettingsStore, to_env_key, DEFAULT_SECTION
@@ -11,7 +10,6 @@ from pytlas_broker.conversing.agents.factory import Factory
 
 DEFAULT_LANGUAGE = 'en'
 LANGUAGE_KEY = 'language'
-DEFAULT_DIR = 'default'
 CACHE_DIR = 'cache'
 CONF_FILENAME = 'pytlas.ini'
 
@@ -33,29 +31,12 @@ def get_config_directories_path(base_path: str, uid: str) -> Tuple[str, str]:
     )
 
 
-def env_from_configparser(config: ConfigParser) -> Dict[str, str]:
-    """Convert a ConfigParser instance to a dictionary which will be used by an
-    agent settings and take precedence over the global ones.
-
-    Args:
-        config (ConfigParser): Instance to flatten
-
-    Returns:
-        dict: Env dictionary
-
-    """
-    result = {}
-    for section in config.sections():
-        result.update({to_env_key(section, k): v for k, v in config.items(section)})
-    return result
-
-
 class FromFile(Factory): # pylint: disable=too-few-public-methods
     """Defines a factory which will create an agent by reading user specific
     .ini files.
     """
 
-    def __init__(self, directory: str) -> None:
+    def __init__(self, directory: str, fallback_folder='default') -> None:
         """Instantiates a new factory by providing a directory which will contain
         user data. The directory should follow this structure:
 
@@ -68,12 +49,14 @@ class FromFile(Factory): # pylint: disable=too-few-public-methods
 
         Args:
             directory (str): Path containing user data
+            fallback_folder (str): Fallback folder name inside directory when
+                managing unknown users
 
         """
         super().__init__('file')
         self._directory = directory
         self._default_cache_dir, self._default_conf_path = \
-            get_config_directories_path(self._directory, DEFAULT_DIR)
+            get_config_directories_path(self._directory, fallback_folder)
 
     def create(self, uid: str) -> Agent:
         cache_dir, conf_path = get_config_directories_path(self._directory, uid)
@@ -82,8 +65,8 @@ class FromFile(Factory): # pylint: disable=too-few-public-methods
         if os.path.isfile(conf_path):
             store = SettingsStore()
             store.load_from_file(conf_path)
-            meta.update(env_from_configparser(store.config))
-            self._logger.info('Updated default settings with the ones in "%s"', conf_path)
+            meta = store.to_dict()
+            self._logger.info('Using settings from "%s"', conf_path)
         else:
             cache_dir = self._default_cache_dir
             self._logger.warning('Could not find a pytlas.ini file in "%s", using the default one',

@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-module-docstring
 
 from pytlas_broker.communicating import Channel
 from pytlas_broker.communicating.messages import Message, Ask, Answer, Context, Done, Thinking
@@ -38,20 +38,30 @@ class ChannelModel:
         self._device_identifier = device_identifier
 
     def on_thinking(self) -> None:
+        """Called when the agent has launched a skill handler.
+        """
         self._send(Thinking(self._device_identifier, self._user_identifier))
 
     def on_done(self, require_input: bool) -> None:
+        """Called when the agent has done its stuff.
+        """
         self._send(Done(self._device_identifier, self._user_identifier, require_input))
 
     def on_ask(self, slot: str, text: str, choices: list, **meta) -> None:
+        """Called when a skill needs more inputs.
+        """
         self._send(Ask(self._device_identifier, self._user_identifier,
                        self._lang, slot, text, choices, **meta))
 
     def on_answer(self, text: str, cards: list, **meta) -> None:
+        """Called when a skill wants to answer something to the user.
+        """
         self._send(Answer(self._device_identifier, self._user_identifier,
                           self._lang, text, cards, **meta))
 
     def on_context(self, context: str) -> None:
+        """Called when the agent has changed its context.
+        """
         self._send(Context(self._device_identifier, self._user_identifier, context))
 
     def _send(self, msg: Message):
