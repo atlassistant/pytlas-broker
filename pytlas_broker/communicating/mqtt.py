@@ -4,8 +4,14 @@
 import json
 from typing import Tuple
 import paho.mqtt.client as mqtt
+from pytlas.settings import CONFIG
 from pytlas_broker.communicating.messages import Message
 from pytlas_broker.communicating.channel import Channel
+
+
+SETTINGS_SECTION = 'mqtt'
+SETTINGS_HOST = 'host'
+SETTINGS_PORT = 'port'
 
 
 def contextualize(topic: str, device_identifier: str, user_identifier: str) -> str:
@@ -51,10 +57,19 @@ class MQTTChannel(Channel):
     """MQTT Channel implementation used to communicate with pytlas.
     """
 
-    def __init__(self, host='localhost', port=1883) -> None:
+    def __init__(self, host: str = None, port: int = None) -> None:
+        """Instantiate a new MQTT channel.
+
+        Args:
+            host (str): MQTT host. Look in settings mqtt.host and fallback to localhost
+            port (int): MQTT port. Look in settings mqtt.port and fallback to 1883
+
+        """
         super().__init__()
-        self._host = host
-        self._port = port
+        self._host = host or CONFIG.get(SETTINGS_HOST,
+                                        'localhost', section=SETTINGS_SECTION)
+        self._port = port or CONFIG.getint(SETTINGS_PORT,
+                                           1883, section=SETTINGS_SECTION)
         self._client = mqtt.Client()
         self._client.on_connect = self._on_connected
         self._client.on_disconnect = self._on_disconnected
@@ -77,7 +92,7 @@ class MQTTChannel(Channel):
                              payload)
 
     def _on_connected(self, client, userdata, flags, rc) -> None: # pylint: disable=invalid-name, unused-argument
-        self._logger.info('Successfully connected to the broker at "%s"', self._host)
+        self._logger.info('Successfully connected to the broker at "%s:%s"', self._host, self._port)
 
         for sub in (contextualize(m, '+', '+') for m in Message.available()):
             self._client.subscribe(sub)
