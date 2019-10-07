@@ -8,8 +8,9 @@ class Channel:
     """Represents a transport layer for messages.
     """
 
-    def __init__(self) -> None:
-        self._logger = logging.getLogger('chan')
+    def __init__(self, name) -> None:
+        self._name = name
+        self._logger = logging.getLogger(self._name)
         self._handlers = []
 
     def __enter__(self) -> None:

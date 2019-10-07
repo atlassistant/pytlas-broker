@@ -15,7 +15,7 @@ class TestChannelModel:
         expect(m._device_identifier).to.be.none
 
     def test_it_should_allow_updates_to_his_inner_channel_and_use_it(self):
-        c = Channel()
+        c = Channel('test')
         c.send = MagicMock()
         m = ChannelModel('fr', 'john')
         m.last_seen_on('pod', c)
