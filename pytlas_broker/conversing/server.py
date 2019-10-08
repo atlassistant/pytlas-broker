@@ -24,7 +24,7 @@ class Server:
 
         """
         self._logger = logging.getLogger('serv')
-        self._agent: Dict[str, Agent] = {}
+        self._agents: Dict[str, Agent] = {}
         self._factory = agent_factory
 
     def on_parse(self, channel: Channel, message: Parse) -> None:
@@ -51,12 +51,12 @@ class Server:
         channel.send(Pong(message.device_identifier, message.user_identifier, agt.lang))
 
     def _retrieve_or_create_agent_for(self, channel: Channel, message: Message) -> Agent:
-        if message.user_identifier not in self._agent:
+        if message.user_identifier not in self._agents:
             agt = self._factory.create(message.user_identifier)
             agt.model = ChannelModel(agt.lang, message.user_identifier)
-            self._agent[message.user_identifier] = agt
+            self._agents[message.user_identifier] = agt
         else:
-            agt = self._agent[message.user_identifier]
+            agt = self._agents[message.user_identifier]
 
         agt.model.last_seen_on(message.device_identifier, channel)
 
