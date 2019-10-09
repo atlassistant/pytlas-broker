@@ -7,6 +7,9 @@ class FakeHandler:
     def __init__(self):
         self.on_parse = MagicMock()
 
+    def accept_message(self, msg):
+                return True
+
 
 class TestChannel:
 
@@ -56,7 +59,8 @@ class TestChannel:
 
     def test_it_should_not_crash_when_model_attr_does_not_exists(self):
         class AnHandler:
-            pass
+            def accept_message(self, msg):
+                return True
         
         hdl = AnHandler()
         c = Channel('test')

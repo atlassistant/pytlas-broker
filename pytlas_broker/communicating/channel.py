@@ -4,6 +4,8 @@ import logging
 from pytlas_broker.communicating.messages import Message
 
 
+ACCEPT_MESSAGE_METHOD_NAME = 'accept_message'
+
 class Channel:
     """Represents a transport layer for messages.
     """
@@ -34,7 +36,11 @@ class Channel:
 
         """
         for model in models:
-            self._handlers.append(model)
+            if not getattr(model, ACCEPT_MESSAGE_METHOD_NAME):
+                self._logger.error('Could not register "%s" as it does not implement the ' \
+                                   '"accept_message" method')
+            else:
+                self._handlers.append(model)
 
     def detach(self, *models) -> None:
         """Detach one or more previously added models from this channel. They will
@@ -60,15 +66,18 @@ class Channel:
 
         """
         for handler in self._handlers:
-            attr_name = f'on_{message.__class__.__name__.lower()}'
-            attr = getattr(handler, attr_name, None)
+            if getattr(handler, ACCEPT_MESSAGE_METHOD_NAME)(message):
+                attr_name = f'on_{message.__class__.__name__.lower()}'
+                attr = getattr(handler, attr_name, None)
 
-            if attr:
-                self._logger.debug('Calling "%s.%s"', handler, attr_name)
-                attr(self, message)
+                if attr:
+                    self._logger.debug('Calling "%s.%s"', handler, attr_name)
+                    attr(self, message)
+                else:
+                    self._logger.debug('Could not find "%s" on handler "%s", skipping',
+                                       attr_name, handler)
             else:
-                self._logger.debug('Could not find "%s" on handler "%s", skipping',
-                                   attr_name, handler)
+                self._logger.debug('Ignoring handler "%s" since it refused the message', handler)
 
     def send(self, message: Message) -> None:
         """Sends a message on this channel, implementation specific.

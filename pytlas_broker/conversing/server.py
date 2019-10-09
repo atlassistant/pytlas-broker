@@ -27,6 +27,11 @@ class Server:
         self._agents: Dict[str, Agent] = {}
         self._factory = agent_factory
 
+    def accept_message(self, msg: Message): # pylint: disable=unused-argument,no-self-use
+        """Determine if this client accepts an incoming message.
+        """
+        return True
+
     def on_parse(self, channel: Channel, message: Parse) -> None:
         """Handler called when a parse message has been received.
 
