@@ -1,7 +1,7 @@
 """Some metadata about the pytlas_broker library!
 """
 
-__title__ = 'pytlas-broker'
+__title__ = 'pytlas_broker'
 __summary__ = 'Wrap the pytlas library across multiple channels'
 __author__ = 'Julien LEICHER'
 __email__ = 'julien@leicher.me'

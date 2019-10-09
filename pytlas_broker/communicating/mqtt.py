@@ -29,7 +29,7 @@ def contextualize(topic: str, device_identifier: str, user_identifier: str) -> s
 
     Examples:
         >>> contextualize('parse', 'pod', 'john')
-        "atlas/pod/john/parse"
+        'atlas/pod/john/parse'
 
     """
     return f'atlas/{device_identifier}/{user_identifier}/{topic}'
