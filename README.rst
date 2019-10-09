@@ -29,7 +29,7 @@ Installation
 
 .. code-block:: bash
 
-  $ pip install pytlas_broker # Gets the latest release from pypi
+  $ pip install pytlas-broker # Gets the latest release from pypi
   $ git clone https://github.com/atlassistant/pytlas-broker && cd pytlas-broker && pip install -e . # or directly from source
 
 Getting started
