@@ -23,6 +23,24 @@ Installation
 Getting started
 ---------------
 
+For now, both the server and the client CLI communicates with an MQTT server. If
+you wish to provider host, port and credentials, just sets pytlas settings in the
+**mqtt** section:
+
+.. code-block:: ini
+
+  [pytlas]
+  skills_dir=skills/
+
+  [mqtt]
+  host=localhost
+  port=1883
+  username=
+  password=
+
+Server
+~~~~~~
+
 At the moment, the CLI will serve agents loaded from a configuration folder using
 MQTT.
 
@@ -51,12 +69,21 @@ To start the broker, use the following command:
 
   $ pytlas-broker serve your_data_folder/
 
-And if you have already cloned the **pytlas** repository, you can serve the
-example right away using:
+And if you have already cloned the **pytlas** repository in the previous folder,
+you can serve the examples right away using:
 
 .. code-block:: bash
 
-  $ pytlas-broker serve pytlas/ --default example
+  $ pytlas-broker serve ../pytlas/ --default example
+
+Client
+~~~~~~
+
+Once your server is running, you can start a tiny REPL client with the command:
+
+.. code-block:: bash
+
+  $ pytlas-broker repl
 
 Testing
 -------

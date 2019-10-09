@@ -1,4 +1,5 @@
 from sure import expect
+from pytlas.handling import Card
 from pytlas_broker.communicating.messages import Message, Ping, Pong, Parse, \
     Answer, Ask, Context, Done, Thinking
 
@@ -72,33 +73,60 @@ class TestParseMessage:
 class TestAnswerMessage:
 
     def test_it_should_contain_attr_data(self):
-        m = Answer('pod', 'john', 'fr-FR', 'This is a message', [],
+        m = Answer('pod', 'john', 'fr-FR', 'This is a message', [Card('Card title', 'Card content text')],
                    a_meta=5, another_one=66)
 
         expect(m.data()).to.equal({
             'language': 'fr-FR',
             'text': 'This is a message',
-            'cards': [],
+            'cards': [{
+                'header': 'Card title',
+                'header_link': None,
+                'media': None,
+                'raw_header': 'Card title',
+                'raw_subhead': None,
+                'raw_text': 'Card content text',
+                'subhead': None,
+                'text': 'Card content text',
+            }],
             'meta': {
                 'a_meta': 5,
                 'another_one': 66,
             },
         })
 
-        def test_it_should_be_deserializable(self):
-            m = Message.from_data('answer', 'pod', 'john', language='en-US',
-                                  text='This is a message', cards=[], meta={'a_meta': 5, 'another_one': 66})
+    def test_it_should_be_deserializable(self):
+        m = Message.from_data('answer', 'pod', 'john', language='en-US',
+                                text='This is a message', cards=[{
+            'header': 'Card title',
+            'header_link': None,
+            'media': None,
+            'raw_header': 'Card title',
+            'raw_subhead': None,
+            'raw_text': 'Card content text',
+            'subhead': None,
+            'text': 'Card content text',
+        }], meta={'a_meta': 5, 'another_one': 66})
 
-            expect(m).to.be.an(Answer)
-            expect(m.device_identifier).to.equal('pod')
-            expect(m.user_identifier).to.equal('john')
-            expect(m.language).to.equal('en-US')
-            expect(m.text).to.equal('This is a message')
-            expect(m.cards).to.be.empty
-            expect(m.meta).to.equal({
-                'a_meta': 5,
-                'another_one': 66,
-            })
+        expect(m).to.be.an(Answer)
+        expect(m.device_identifier).to.equal('pod')
+        expect(m.user_identifier).to.equal('john')
+        expect(m.language).to.equal('en-US')
+        expect(m.text).to.equal('This is a message')
+        expect(m.cards).to.equal([{
+            'header': 'Card title',
+            'header_link': None,
+            'media': None,
+            'raw_header': 'Card title',
+            'raw_subhead': None,
+            'raw_text': 'Card content text',
+            'subhead': None,
+            'text': 'Card content text',
+        }])
+        expect(m.meta).to.equal({
+            'a_meta': 5,
+            'another_one': 66,
+        })
 
 
 class TestAskMessage:

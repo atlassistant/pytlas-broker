@@ -5,6 +5,7 @@ import click
 from pytlas.cli import install_logs, SKILLS_DIR, WATCH
 from pytlas.settings import CONFIG
 from pytlas.handling.importers import import_skills
+from pytlas_broker.cli.repl import ReplClient
 from pytlas_broker.communicating.mqtt import MQTTChannel
 from pytlas_broker.conversing import Server
 from pytlas_broker.conversing.agents import FromFile
@@ -20,6 +21,18 @@ def main(verbose, debug):
     """
     install_logs(verbose, debug)
 
+
+@main.command()
+@click.option('-c', '--config', type=click.Path())
+def repl(config):
+    """Starts a client REPL to communicate with a broker instance.
+    """
+    if config:
+        CONFIG.load_from_file(config)
+
+    with MQTTChannel() as mqtt:
+        client = ReplClient('cli', mqtt)
+        client.cmdloop()
 
 @main.command()
 @click.argument('data_dir', type=click.Path(), required=True)

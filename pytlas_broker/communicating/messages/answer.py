@@ -1,5 +1,6 @@
 # pylint: disable=C0111,R0913
 
+from pytlas.handling import Card
 from pytlas_broker.communicating.messages.message import Message
 
 
@@ -25,5 +26,5 @@ class Answer(Message):
 
         self.language = language
         self.text = text
-        self.cards = cards
+        self.cards = [c.__dict__ if isinstance(c, Card) else c for c in cards] if cards else []
         self.meta = meta
