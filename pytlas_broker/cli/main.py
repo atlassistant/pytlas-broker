@@ -23,15 +23,17 @@ def main(verbose, debug):
 
 
 @main.command()
-@click.option('-c', '--config', type=click.Path())
-def repl(config):
+@click.option('-c', '--config', type=click.Path(), help='Path to a config file')
+@click.option('-did', '--device-identifier', default='cli', help='Device identifier to use')
+@click.option('-uid', '--user-identifier', default='default', help='User identifier to use')
+def repl(config, user_identifier, device_identifier):
     """Starts a client REPL to communicate with a broker instance.
     """
     if config:
         CONFIG.load_from_file(config)
 
     with MQTTChannel() as mqtt:
-        client = ReplClient('cli', mqtt)
+        client = ReplClient(device_identifier, user_identifier, mqtt)
         client.cmdloop()
 
 @main.command()

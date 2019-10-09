@@ -14,19 +14,21 @@ class ReplClient(cmd.Cmd):
     intro = 'pytlas broker prompt v%s (type exit to leave)' % __version__
     prompt = ''
 
-    def __init__(self, device_identifier: str, channel: Channel) -> None:
+    def __init__(self, device_identifier: str, user_identifier: str, channel: Channel) -> None:
         super().__init__()
         self._client = Client(device_identifier, channel)
+        self._user_identifier = user_identifier
 
         # Since we already inherits from Cmd, lets redirect message handling
         self._client.on_ask = self.on_ask
         self._client.on_answer = self.on_answer
 
-    def _print(self, msg):
-        print('🤖💬 >', msg)
+    def _print(self, *msg):
+        print('🤖💬 >', *msg)
 
     def on_ask(self, channel: Channel, msg: Ask):
-        self._print(msg.meta.get('raw_text', msg.text))
+        choices = ('(%s)' % ', '.join(msg.choices)) if msg.choices else ''
+        self._print(msg.meta.get('raw_text', msg.text), choices)
 
     def on_answer(self, channel: Channel, msg: Answer):
         self._print(msg.meta.get('raw_text', msg.text))
@@ -35,4 +37,4 @@ class ReplClient(cmd.Cmd):
         return True
 
     def default(self, line):
-        self._client.parse(line, 'repl')
+        self._client.parse(line, self._user_identifier)
