@@ -1,5 +1,17 @@
-pytlas-broker
-=============
+pytlas-broker |travis| |cover| |pypi| |license|
+===============================================
+
+.. |travis| image:: https://travis-ci.org/atlassistant/pytlas-broker.svg?branch=master
+    :target: https://travis-ci.org/atlassistant/pytlas-broker
+
+.. |cover| image:: https://codecov.io/gh/atlassistant/pytlas-broker/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/atlassistant/pytlas-broker
+
+.. |pypi| image:: https://badge.fury.io/py/pytlas-broker.svg
+    :target: https://badge.fury.io/py/pytlas-broker
+
+.. |license| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
+    :target: https://www.gnu.org/licenses/gpl-3.0
 
 Library and Command Line Utilities to communicate with the
 `pytlas open-source assistant <https://github.com/atlassistant/pytlas>`_ using
